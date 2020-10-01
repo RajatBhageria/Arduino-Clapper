@@ -1,25 +1,50 @@
-int ledPin = 4;
-int soundPin = A0; 
-int clapCount = 0;  
+// Milan Technical World
+//
 
+int sound_sensor = A0;
+int relay = 5;
+
+int clap = 0;
+long detection_range_start = 0;
+long detection_range = 0;
+boolean status_lights = false;
+ 
 void setup() {
-  // put your setup code here, to run once:
-  pinMode(ledPin, OUTPUT); 
-
+  pinMode(sound_sensor, INPUT);
+  pinMode(relay, OUTPUT);
 }
-
+ 
 void loop() {
-  // put your main code here, to run repeatedly:
-  int soundState = analogRead(soundPin); 
-  if (soundState > 500){
-    clapCount++; 
-    delay(500); 
+  int status_sensor = digitalRead(sound_sensor);
+  if (status_sensor == 0)
+  {
+    if (clap == 0)
+    {
+      detection_range_start = detection_range = millis();
+      clap++;
+    }
+    else if (clap > 0 && millis()-detection_range >= 50)
+    {
+      detection_range = millis();
+      clap++;
+    }
   }
-  if (clapCount ==4){
-    digitalWrite(ledPin, LOW); 
-    clapCount = clapCount % 2; 
-  }
-  if (clapCount == 2){
-    digitalWrite(ledPin, HIGH); 
+  if (millis()-detection_range_start >= 400)
+  {
+    if (clap == 2)
+    {
+      if (!status_lights)
+        {
+          status_lights = true;
+          digitalWrite(relay, HIGH);
+        }
+        else if (status_lights)
+        {
+          status_lights = false;
+          digitalWrite(relay, LOW);
+        }
+    }
+    clap = 0;
   }
 }
+
